@@ -32,7 +32,20 @@ if ($tab === 'harian') {
 
 // Detail Laporan (Best Seller)
 $bestSeller = [];
+$totalPages = 1;
+$page = 1;
+$offset = 0;
 if ($tab === 'detail') {
+    $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+    if ($page < 1)
+        $page = 1;
+    $limit = 10;
+    $offset = ($page - 1) * $limit;
+
+    $totalQuery = $pdo->query("SELECT COUNT(DISTINCT id_produk) FROM t_penjualan_detail");
+    $totalRows = $totalQuery->fetchColumn();
+    $totalPages = ceil($totalRows / $limit);
+
     $stmt = $pdo->query("
         SELECT p.nama_produk, SUM(d.qty) AS total_qty, SUM(d.subtotal) AS total_penjualan
         FROM t_penjualan_detail d
@@ -40,7 +53,7 @@ if ($tab === 'detail') {
         INNER JOIN t_penjualan pj ON d.id_penjualan = pj.id_penjualan
         GROUP BY d.id_produk, p.nama_produk
         ORDER BY total_qty DESC
-        LIMIT 20
+        LIMIT $limit OFFSET $offset
     ");
     $bestSeller = $stmt->fetchAll();
 }
@@ -150,12 +163,7 @@ require_once __DIR__ . '/../../includes/header.php';
                 <?php else:
                     foreach ($bestSeller as $i => $b): ?>
                         <tr>
-                            <td>
-                                <?php if ($i === 0): ?><span style="font-size:1.2rem;">🥇</span>
-                                <?php elseif ($i === 1): ?><span style="font-size:1.2rem;">🥈</span>
-                                <?php elseif ($i === 2): ?><span style="font-size:1.2rem;">🥉</span>
-                                <?php else: ?>                 <?= $i + 1 ?>             <?php endif; ?>
-                            </td>
+                            <td><?= $offset + $i + 1 ?></td>
                             <td><strong><?= htmlspecialchars($b['nama_produk']) ?></strong></td>
                             <td><span class="badge badge-accent"><?= $b['total_qty'] ?> pcs</span></td>
                             <td><strong>Rp <?= number_format($b['total_penjualan'], 0, ',', '.') ?></strong></td>
@@ -163,6 +171,15 @@ require_once __DIR__ . '/../../includes/header.php';
                     <?php endforeach; endif; ?>
             </tbody>
         </table>
+
+        <?php if ($totalPages > 1): ?>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:20px;margin-bottom:20px;">
+                <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+                    <a href="?tab=detail&page=<?= $p ?>" class="btn <?= $p === $page ? 'btn-primary' : 'btn-outline' ?> btn-sm"
+                        style="padding: 8px 12px;"><?= $p ?></a>
+                <?php endfor; ?>
+            </div>
+        <?php endif; ?>
 
     <?php endif; ?>
 </div>

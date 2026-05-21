@@ -38,7 +38,7 @@ $baseUrl = '/uts/si-kasir';
                 </a>
                 <a href="<?= $baseUrl ?>/modules/laporan/riwayat_stok.php"
                     class="<?= strpos($_SERVER['PHP_SELF'], 'riwayat_stok') !== false ? 'active' : '' ?>">
-                    <i class="fas​ fa-exchange-alt"></i> Riwayat Stok
+                    <i class="fas fa-exchange-alt"></i> Riwayat Stok
                 </a>
                 <a href="<?= $baseUrl ?>/modules/auth/register.php"
                     class="<?= strpos($_SERVER['PHP_SELF'], 'register') !== false ? 'active' : '' ?>">

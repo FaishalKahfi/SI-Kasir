@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="login-page">
         <div class="login-box">
             <div class="brand">SI-KASIR</div>
-            <h1>Selamat Datang 👋</h1>
+            <h1>Selamat Datang</h1>
             <p class="subtitle">Toko Swalayan Maju Jaya — Sistem Kasir Terintegrasi</p>
 
             <?php if ($error): ?>
