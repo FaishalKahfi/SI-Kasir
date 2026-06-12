@@ -28,6 +28,10 @@ $baseUrl = '/uts/si-kasir';
             <?php endif; ?>
 
             <?php if (isAdmin()): ?>
+                <a href="<?= $baseUrl ?>/modules/dashboard/index.php"
+                    class="<?= strpos($_SERVER['PHP_SELF'], 'dashboard') !== false ? 'active' : '' ?>">
+                    <i class="fas fa-chart-pie"></i> Dashboard
+                </a>
                 <a href="<?= $baseUrl ?>/modules/produk/index.php"
                     class="<?= strpos($_SERVER['PHP_SELF'], 'produk') !== false ? 'active' : '' ?>">
                     <i class="fas fa-boxes-stacked"></i> Produk
@@ -47,10 +51,9 @@ $baseUrl = '/uts/si-kasir';
             <?php endif; ?>
 
             <div class="user-info">
-                <i class="fas fa-user-circle"></i>
-                <strong><?= htmlspecialchars($_SESSION['username'] ?? '') ?></strong>
-                <br><small><?= htmlspecialchars($_SESSION['role'] ?? '') ?></small>
-                <br><br>
+                <i class="fas fa-user-circle" style="font-size: 1.5rem; margin-bottom: 8px;"></i>
+                <strong style="margin-top: 0; margin-bottom: 2px;"><?= htmlspecialchars($_SESSION['username'] ?? '') ?></strong>
+                <small style="display: block; margin-bottom: 16px;"><?= htmlspecialchars($_SESSION['role'] ?? '') ?></small>
                 <a href="<?= $baseUrl ?>/modules/auth/profil.php"
                     class="btn btn-outline btn-sm <?= strpos($_SERVER['PHP_SELF'], 'profil') !== false ? 'active' : '' ?>"
                     style="width:100%;justify-content:center;margin-bottom:8px;">

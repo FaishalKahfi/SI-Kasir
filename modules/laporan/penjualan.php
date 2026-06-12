@@ -13,7 +13,7 @@ $tanggal = $_GET['tanggal'] ?? date('Y-m-d');
 $laporanHarian = [];
 if ($tab === 'harian') {
     $stmt = $pdo->prepare("
-        SELECT p.nomor_nota, p.tgl_transaksi, p.total_bayar, u.username AS kasir
+        SELECT p.id_penjualan, p.nomor_nota, p.tgl_transaksi, p.total_bayar, u.username AS kasir
         FROM t_penjualan p
         INNER JOIN m_user u ON p.id_user = u.id_user
         WHERE DATE(p.tgl_transaksi) = ?
@@ -29,6 +29,28 @@ if ($tab === 'harian') {
     $jumlahNota = count($laporanHarian);
 }
 
+
+// Detail Nota
+$headerNota = null;
+$detailNota = [];
+if ($tab === 'detail_nota') {
+    $id_penjualan = isset($_GET['id']) ? intval($_GET['id']) : 0;
+    
+    $hdr = $pdo->prepare("SELECT t.*, u.username FROM t_penjualan t JOIN m_user u ON t.id_user = u.id_user WHERE t.id_penjualan = ?");
+    $hdr->execute([$id_penjualan]);
+    $headerNota = $hdr->fetch();
+    
+    if ($headerNota) {
+        $stmt = $pdo->prepare("
+            SELECT d.*, p.nama_produk
+            FROM t_penjualan_detail d
+            JOIN m_produk p ON d.id_produk = p.id_produk
+            WHERE d.id_penjualan = ?
+        ");
+        $stmt->execute([$id_penjualan]);
+        $detailNota = $stmt->fetchAll();
+    }
+}
 
 // Detail Laporan (Best Seller)
 $bestSeller = [];
@@ -122,12 +144,13 @@ require_once __DIR__ . '/../../includes/header.php';
                     <th>Tanggal</th>
                     <th>Kasir</th>
                     <th>Total</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($laporanHarian)): ?>
                     <tr>
-                        <td colspan="4" style="text-align:center;color:var(--text-muted);padding:40px;">Belum ada transaksi pada
+                        <td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px;">Belum ada transaksi pada
                             tanggal ini.</td>
                     </tr>
                 <?php else:
@@ -137,6 +160,9 @@ require_once __DIR__ . '/../../includes/header.php';
                             <td><?= date('d/m/Y H:i', strtotime($l['tgl_transaksi'])) ?></td>
                             <td><?= htmlspecialchars($l['kasir']) ?></td>
                             <td><strong>Rp <?= number_format($l['total_bayar'], 0, ',', '.') ?></strong></td>
+                            <td>
+                                <a href="?tab=detail_nota&id=<?= $l['id_penjualan'] ?>" class="btn btn-sm btn-outline"><i class="fas fa-eye"></i> Detail</a>
+                            </td>
                         </tr>
                     <?php endforeach; endif; ?>
             </tbody>
@@ -178,6 +204,74 @@ require_once __DIR__ . '/../../includes/header.php';
                     <a href="?tab=detail&page=<?= $p ?>" class="btn <?= $p === $page ? 'btn-primary' : 'btn-outline' ?> btn-sm"
                         style="padding: 8px 12px;"><?= $p ?></a>
                 <?php endfor; ?>
+            </div>
+        <?php endif; ?>
+
+    <?php elseif ($tab === 'detail_nota'): ?>
+        <!-- DETAIL NOTA -->
+        <div class="card-header">
+            <span>Detail Nota</span>
+            <a href="?tab=harian&tanggal=<?= isset($headerNota['tgl_transaksi']) ? date('Y-m-d', strtotime($headerNota['tgl_transaksi'])) : date('Y-m-d') ?>" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Kembali</a>
+        </div>
+
+        <?php if (!$headerNota): ?>
+            <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+                Data nota tidak ditemukan.
+            </div>
+        <?php else: ?>
+            <div class="nota" style="max-width:480px;margin:20px auto;border:1px solid var(--border);padding:20px;border-radius:8px;">
+                <h2 style="text-align:center;">TOKO MAJU JAYA</h2>
+                <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);">Jl. Maju Jaya No. 1 — Telp: (021) 123-4567</p>
+                <div style="border-bottom:1px dashed var(--border);margin:10px 0;"></div>
+
+                <table style="width:100%;border:none;">
+                    <tr>
+                        <td style="border:none;padding:4px 0;">No. Nota</td>
+                        <td style="text-align:right;font-weight:bold;border:none;padding:4px 0;"><?= htmlspecialchars($headerNota['nomor_nota']) ?></td>
+                    </tr>
+                    <tr>
+                        <td style="border:none;padding:4px 0;">Tanggal</td>
+                        <td style="text-align:right;border:none;padding:4px 0;"><?= date('d/m/Y H:i', strtotime($headerNota['tgl_transaksi'])) ?></td>
+                    </tr>
+                    <tr>
+                        <td style="border:none;padding:4px 0;">Kasir</td>
+                        <td style="text-align:right;border:none;padding:4px 0;"><?= htmlspecialchars($headerNota['username']) ?></td>
+                    </tr>
+                </table>
+
+                <div style="border-bottom:1px dashed var(--border);margin:10px 0;"></div>
+
+                <table style="width:100%;border:none;">
+                    <thead>
+                        <tr>
+                            <td style="border:none;padding:4px 0;"><strong>Barang</strong></td>
+                            <td style="text-align:center;border:none;padding:4px 0;"><strong>Qty</strong></td>
+                            <td style="text-align:right;border:none;padding:4px 0;"><strong>Subtotal</strong></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($detailNota as $d): ?>
+                            <tr>
+                                <td style="border:none;padding:4px 0;"><?= htmlspecialchars($d['nama_produk']) ?></td>
+                                <td style="text-align:center;border:none;padding:4px 0;"><?= $d['qty'] ?></td>
+                                <td style="text-align:right;border:none;padding:4px 0;">Rp <?= number_format($d['subtotal'], 0, ',', '.') ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+
+                <div style="border-bottom:1px dashed var(--border);margin:10px 0;"></div>
+
+                <table style="width:100%;font-size:0.85rem;border:none;">
+                    <tr>
+                        <td style="border:none;padding:4px 0;"><strong>Total</strong></td>
+                        <td style="text-align:right;font-weight:bold;font-size:1rem;border:none;padding:4px 0;">Rp <?= number_format($headerNota['total_bayar'], 0, ',', '.') ?></td>
+                    </tr>
+                </table>
+                
+                <div style="display:flex;gap:12px;margin-top:20px;justify-content:center;">
+                    <button onclick="window.print()" class="btn btn-outline btn-sm"><i class="fas fa-print"></i> Cetak</button>
+                </div>
             </div>
         <?php endif; ?>
 

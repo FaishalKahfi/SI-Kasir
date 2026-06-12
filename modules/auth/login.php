@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['role'] = $user['role'];
 
                 if ($user['role'] === 'Admin') {
-                    header('Location: ../produk/index.php');
+                    header('Location: ../dashboard/index.php');
                 } else {
                     header('Location: ../transaksi/index.php');
                 }

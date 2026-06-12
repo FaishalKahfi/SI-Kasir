@@ -26,6 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($nama)) {
             $message = "Data produk tidak lengkap, semua kolom wajib diisi!";
             $msgType = 'danger';
+        } elseif (strlen($nama) > 100) {
+            $message = "Nama produk tidak boleh lebih dari 100 karakter!";
+            $msgType = 'danger';
         } elseif (!is_numeric($harga) || $harga < 0) {
             $message = "Harga harus berupa angka positif!";
             $msgType = 'danger';
@@ -66,6 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($nama) || !is_numeric($harga) || $harga < 0) {
             $_SESSION['message'] = "Data produk tidak lengkap, semua kolom wajib diisi!";
+            $_SESSION['msgType'] = 'danger';
+            header('Location: index.php?edit=' . $id);
+            exit;
+        } elseif (strlen($nama) > 100) {
+            $_SESSION['message'] = "Nama produk tidak boleh lebih dari 100 karakter!";
             $_SESSION['msgType'] = 'danger';
             header('Location: index.php?edit=' . $id);
             exit;
@@ -257,7 +265,7 @@ require_once __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="action" value="tambah">
             <div class="form-group">
                 <label for="nama_produk">Nama Produk</label>
-                <input type="text" name="nama_produk" id="nama_produk" class="form-control" required>
+                <input type="text" name="nama_produk" id="nama_produk" class="form-control" maxlength="100" required>
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -289,7 +297,7 @@ require_once __DIR__ . '/../../includes/header.php';
                 <div class="form-group">
                     <label>Nama Produk</label>
                     <input type="text" name="nama_produk" class="form-control"
-                        value="<?= htmlspecialchars($editProduk['nama_produk']) ?>" required>
+                        value="<?= htmlspecialchars($editProduk['nama_produk']) ?>" maxlength="100" required>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
